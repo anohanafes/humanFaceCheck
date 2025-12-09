@@ -133,6 +133,7 @@
         isCanvasInitialized: false,
         isDetecting: false,
         verificationFailed: false,
+        verificationSuccess: false,
         modelsLoaded: false,
         shadersCompiled: false,
         reportSent: false,
@@ -161,6 +162,8 @@
         State.matchCount = 0;
         State.failCount = 0;
         State.verificationFailed = false;
+        State.verificationSuccess = false;
+        State.reportSent = false;
         State.similarityHistory = [];
     }
 
@@ -688,7 +691,7 @@
     // ==================== FaceDetection 模块 ====================
     const FaceDetection = {
         async detect(video) {
-            if (!State.registeredDescriptor || State.isDetecting || State.verificationFailed) {
+            if (!State.registeredDescriptor || State.isDetecting || State.verificationFailed || State.verificationSuccess) {
                 return State.detections;
             }
 
@@ -842,10 +845,10 @@
                 if (State.matchCount >= Config.requiredMatchFrames) {
                     if (!State.reportSent) {
                         State.reportSent = true;
+                        State.verificationSuccess = true;
                         statusDiv.textContent = "验证通过！";
                         statusDiv.style.color = "#00ff99";
                         retryBtn.style.display = 'none';
-                        State.isDetecting = true;
                         // 触发成功回调
                         Callbacks.triggerSuccess({
                             similarity: State.currentSimilarity,
