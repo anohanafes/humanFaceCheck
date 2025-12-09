@@ -1,7 +1,7 @@
 {
   "name": "humanfacecheck",
-  "version": "1.0.1",
-  "description": "人脸识别验证系统，支持活体检测",
+  "version": "1.0.3",
+  "description": "轻量级浏览器端人脸识别验证系统，支持活体检测、网络图片注册、跨项目交互",
   "main": "js/app.js",
   "module": "js/modules/index.js",
   "files": [
@@ -9,6 +9,7 @@
     "css/",
     "faceModels/",
     "faceTools/",
+    "docs/",
     "index.html",
     "LICENSE"
   ],
