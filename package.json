@@ -1,7 +1,7 @@
 {
   "name": "humanfacecheck",
   "version": "1.0.0",
-  "description": "人脸识别验证系统，支持活体检测（张嘴、摇头）",
+  "description": "人脸识别验证系统，支持活体检测",
   "main": "js/app.js",
   "module": "js/modules/index.js",
   "files": [
