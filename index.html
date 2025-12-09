@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer">
+    <title>人脸识别验证</title>
+    
+    <!-- 样式 -->
+    <link rel="stylesheet" href="./css/index.css">
+    
+    <!-- 预加载关键资源 -->
+    <link rel="preload" href="./faceTools/face-api.js" as="script">
+    <link rel="preload" href="./faceTools/tf.min.js" as="script">
+    
+    <!-- Service Worker 注册 -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('SW 注册成功'))
+                .catch(err => console.log('SW 注册失败:', err));
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 上传控件 -->
+        <div id="controls">
+            <label class="upload-btn">
+                📷 上传身份照片
+                <input type="file" id="upload" accept="image/*" onchange="registerFace(event)">
+            </label>
+        </div>
+
+        <!-- 视频容器 -->
+        <div id="video-container" class="display-none">
+            <!-- 人脸引导框 -->
+            <div id="face-guide">
+                <div class="face-text">请将脸部置于框内</div>
+                <div class="scan-line"></div>
+            </div>
+            
+            <!-- 活体检测引导 -->
+            <div id="liveness-guide" class="liveness-guide display-none">
+                <div id="liveness-instruction" class="liveness-instruction">请张嘴</div>
+                <div class="liveness-progress">
+                    <div id="liveness-progress-bar" class="liveness-progress-bar"></div>
+                </div>
+                <div id="liveness-steps" class="liveness-steps">
+                    <span id="step-mouth" class="step-item">👄 张嘴</span>
+                    <span id="step-shake" class="step-item">🔄 转头</span>
+                    <span id="step-nod" class="step-item">✅ 验证</span>
+                </div>
+            </div>
+            
+            <!-- 视频和画布 -->
+            <video id="video" autoplay muted playsinline></video>
+            <canvas id="canvas"></canvas>
+            
+            <!-- 加载动画 -->
+            <div id="loading" class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <!-- 状态提示 -->
+        <div id="status">请上传您的身份照片进行注册</div>
+
+        <!-- 重试按钮 -->
+        <button id="retry-btn" class="retry-btn" onclick="retryVerification()">重新验证</button>
+    </div>
+
+    <!-- 脚本 -->
+    <script src="./faceTools/tf.min.js"></script>
+    <script defer src="./faceTools/face-api.js"></script>
+    <script src="./js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,395 @@
+/* ==================== 基础样式 ==================== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, #001428 0%, #0a2a42 50%, #001428 100%);
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* ==================== 容器布局 ==================== */
+.container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+/* ==================== 上传控件 ==================== */
+#controls {
+    text-align: center;
+    width: 100%;
+}
+
+.upload-btn {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #4481eb 0%, #04befe 100%);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    padding: 14px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(4, 190, 254, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.5px;
+}
+
+.upload-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(4, 190, 254, 0.5);
+}
+
+.upload-btn:active {
+    transform: translateY(0);
+}
+
+.upload-btn input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    opacity: 0;
+    cursor: inherit;
+}
+
+/* ==================== 视频容器 ==================== */
+#video {
+    display: none;
+}
+
+#video-container {
+    width: 90vw;
+    max-width: 450px;
+    height: 55vh;
+    max-height: 400px;
+    margin: 0 auto;
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+#video-container > canvas {
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 16px;
+    background-color: #0a2a42;
+    box-shadow: 
+        0 10px 40px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(76, 255, 255, 0.1);
+}
+
+/* ==================== 人脸引导框 ==================== */
+#face-guide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 260px;
+    border: 3px dashed rgba(76, 255, 255, 0.6);
+    border-radius: 50% / 60%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 10;
+    animation: guidePulse 2s ease-in-out infinite;
+}
+
+@keyframes guidePulse {
+    0%, 100% { border-color: rgba(76, 255, 255, 0.6); }
+    50% { border-color: rgba(76, 255, 255, 0.9); }
+}
+
+#face-guide::before {
+    content: '';
+    position: absolute;
+    width: 85%;
+    height: 85%;
+    border: 1px solid rgba(76, 255, 255, 0.3);
+    border-radius: 50% / 60%;
+}
+
+.face-text {
+    position: absolute;
+    color: #4cffff;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    width: 250%;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+    background: rgba(0, 20, 40, 0.7);
+    padding: 6px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+/* 扫描线动画 */
+@keyframes scanning {
+    0% { transform: translateY(-120px); opacity: 0; }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.8; }
+    100% { transform: translateY(120px); opacity: 0; }
+}
+
+.scan-line {
+    position: absolute;
+    width: 90%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #00ffff 50%, transparent 100%);
+    animation: scanning 2.5s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+}
+
+/* ==================== 活体检测界面 ==================== */
+.liveness-guide {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 20, 40, 0.95);
+    border: 1px solid rgba(76, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 16px 24px;
+    text-align: center;
+    z-index: 15;
+    min-width: 280px;
+    max-width: 90%;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.liveness-instruction {
+    color: #4cffff;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    text-shadow: 0 0 20px rgba(76, 255, 255, 0.5);
+}
+
+.liveness-progress {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    margin: 12px 0;
+    overflow: hidden;
+}
+
+.liveness-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4cffff, #00ff99);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 15px rgba(76, 255, 255, 0.6);
+}
+
+.liveness-steps {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 12px;
+    gap: 8px;
+}
+
+.step-item {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+
+.step-item.active {
+    color: #4cffff;
+    background: rgba(76, 255, 255, 0.1);
+    text-shadow: 0 0 10px rgba(76, 255, 255, 0.5);
+}
+
+.step-item.completed {
+    color: #00ff99;
+    text-shadow: 0 0 10px rgba(0, 255, 153, 0.5);
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.liveness-instruction.pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ==================== 加载动画 ==================== */
+.loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 20, 40, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 16px;
+    z-index: 20;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border-top-color: #4cffff;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ==================== 状态提示 ==================== */
+#status {
+    color: #5c9ce6;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+    padding: 12px 20px;
+    background: rgba(0, 20, 40, 0.6);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+}
+
+/* ==================== 重试按钮 ==================== */
+.retry-btn {
+    background: linear-gradient(135deg, #4481eb 0%, #04befe 100%);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    padding: 14px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(4, 190, 254, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: none;
+}
+
+.retry-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(4, 190, 254, 0.5);
+}
+
+/* ==================== 验证状态 ==================== */
+.verification-failed {
+    color: #ff6b6b !important;
+    background: rgba(255, 76, 76, 0.1) !important;
+    border: 1px solid rgba(255, 76, 76, 0.3);
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+}
+
+/* ==================== 工具类 ==================== */
+.display-none {
+    display: none !important;
+}
+
+/* ==================== 响应式适配 ==================== */
+@media (max-width: 480px) {
+    .container {
+        padding: 15px;
+        gap: 15px;
+    }
+
+    #video-container {
+        width: 95vw;
+        height: 50vh;
+    }
+
+    #face-guide {
+        width: 160px;
+        height: 210px;
+    }
+
+    .liveness-guide {
+        padding: 12px 16px;
+        min-width: 260px;
+    }
+
+    .liveness-instruction {
+        font-size: 16px;
+    }
+
+    .step-item {
+        font-size: 12px;
+        padding: 3px 6px;
+    }
+
+    .upload-btn,
+    .retry-btn {
+        padding: 12px 24px;
+        font-size: 15px;
+    }
+
+    #status {
+        font-size: 14px;
+        padding: 10px 16px;
+    }
+}
+
+@media (max-height: 700px) {
+    #video-container {
+        height: 45vh;
+    }
+
+    .container {
+        padding: 10px;
+        gap: 12px;
+    }
+}
+
+/* ==================== 深色模式优化 ==================== */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #000a14 0%, #061a2e 50%, #000a14 100%);
+    }
+}

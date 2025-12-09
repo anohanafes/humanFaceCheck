@@ -1,0 +1,39 @@
+{
+  "name": "humanfacecheck",
+  "version": "1.0.0",
+  "description": "人脸识别验证系统，支持活体检测（张嘴、摇头）",
+  "main": "js/app.js",
+  "module": "js/modules/index.js",
+  "files": [
+    "js/",
+    "css/",
+    "faceModels/",
+    "faceTools/",
+    "index.html"
+  ],
+  "scripts": {
+    "start": "npx http-server -p 8080"
+  },
+  "keywords": [
+    "face",
+    "recognition",
+    "verification",
+    "liveness",
+    "face-api",
+    "tensorflow",
+    "humanFaceCheck"
+  ],
+  "author": "anohanafes",
+  "license": "MIT",
+  "peerDependencies": {
+    "face-api.js": "^0.22.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anohanafes/humanFaceCheck.git"
+  },
+  "homepage": "https://github.com/anohanafes/humanFaceCheck#readme",
+  "bugs": {
+    "url": "https://github.com/anohanafes/humanFaceCheck/issues"
+  }
+}
