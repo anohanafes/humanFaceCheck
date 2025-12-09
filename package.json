@@ -1,6 +1,6 @@
 {
   "name": "humanfacecheck",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "人脸识别验证系统，支持活体检测",
   "main": "js/app.js",
   "module": "js/modules/index.js",
@@ -9,7 +9,8 @@
     "css/",
     "faceModels/",
     "faceTools/",
-    "index.html"
+    "index.html",
+    "LICENSE"
   ],
   "scripts": {
     "start": "npx http-server -p 8080"
