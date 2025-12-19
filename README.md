@@ -106,6 +106,15 @@ window.addEventListener('message', (e) => {
 | maxFailCount | 4 | 最大连续失败次数 |
 | requiredMatchFrames | 3 | 需要连续匹配成功的帧数 |
 
+## 适用场景
+
+- ✅ 内部系统身份确认
+- ✅ 签到/打卡
+- ✅ 普通 App 人脸登录
+- ✅ 学习/演示
+
+不适用于银行开户、实名认证等高安全场景，这类场景建议使用专业云服务。
+
 ## 技术栈
 
 - face-api.js - 人脸检测与特征提取
