@@ -40,7 +40,7 @@ https://your-domain.com/index.html?photo=https://example.com/avatar.jpg
 ```javascript
 FaceVerify.init({
   photoUrl: 'https://example.com/avatar.jpg',
-  enableLiveness: true,  // 是否启用活体检测
+  enableLiveness: true,  // 是否启用活体检测，默认 true
   onSuccess: (result) => {
     console.log('验证成功', result.similarity);
   },
@@ -50,6 +50,12 @@ FaceVerify.init({
   onProgress: (step) => {
     console.log('当前步骤', step);
   }
+});
+
+// 禁用活体检测（仅人脸比对）
+FaceVerify.init({
+  photoUrl: 'https://example.com/avatar.jpg',
+  enableLiveness: false
 });
 ```
 

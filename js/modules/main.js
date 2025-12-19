@@ -84,7 +84,7 @@ function initializeEventListeners() {
  * FaceVerify API - 供外部调用
  */
 const FaceVerify = {
-    version: '1.1.0',
+    version: '1.1.1',
 
     /**
      * 初始化并开始验证
