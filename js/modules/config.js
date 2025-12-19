@@ -27,12 +27,14 @@ export const state = {
     // 活体检测相关
     livenessStep: 0,                 // 0: 张嘴, 1: 摇头, 2: 验证
     isLivenessActive: false,
+    livenessTransitioning: false,    // 步骤切换中，防止提示被覆盖
     
     // 张嘴检测
     mouthOpenCount: 0,
     lastMouthOpenTime: 0,
     mouthWasOpen: false,
     mouthBaseline: null,
+    mouthOpenStartTime: 0,
     
     // 摇头检测
     shakeCount: 0,
@@ -53,6 +55,12 @@ export const config = {
     // 活体检测配置
     requiredMouthOpens: 1,           // 需要张嘴次数
     requiredShakes: 1,               // 需要摇头次数
+    mouthOpenThreshold: 0.7,         // 张嘴阈值 (嘴高/嘴宽比例，越大要求张嘴幅度越大)
+    mouthOpenDuration: 800,          // 张嘴持续时间 (ms)
+    headShakeThreshold: {            // 摇头阈值
+        right: 1.5,                  // 向右转头阈值 (越大要求转头幅度越大)
+        left: 0.67                   // 向左转头阈值 (越小要求转头幅度越大)
+    },
     
     // 模型路径
     modelPath: './faceModels',
@@ -70,16 +78,20 @@ export function resetVerificationState() {
     state.failCount = 0;
     state.verificationFailed = false;
     state.similarityHistory = [];
+    state.reportSent = false;
+    state.isDetecting = false;
 }
 
 // 重置活体检测状态
 export function resetLivenessState() {
     state.isLivenessActive = false;
     state.livenessStep = 0;
+    state.livenessTransitioning = false;
     state.mouthOpenCount = 0;
     state.mouthWasOpen = false;
     state.mouthBaseline = null;
     state.lastMouthOpenTime = 0;
+    state.mouthOpenStartTime = 0;
     state.shakeCount = 0;
     state.headShakeDirection = 0;
     state.shakeSequence = [];

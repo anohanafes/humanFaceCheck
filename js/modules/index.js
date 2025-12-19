@@ -2,7 +2,7 @@
  * Face Verify - ES Module 入口
  * 
  * 使用方式:
- * import FaceVerify from 'face-verify';
+ * import FaceVerify from 'humanfacecheck';
  * 
  * FaceVerify.init({
  *     photoUrl: 'https://example.com/photo.jpg',
@@ -12,9 +12,16 @@
  * });
  */
 
+// 导出配置和状态
 export { state as State, config as Config, resetVerificationState, resetLivenessState } from './config.js';
+
+// 导出工具函数
 export { normalizeDescriptor, calculateSimilarity, getSmoothSimilarity, isMobileDevice, resizeCanvas } from './utils.js';
+
+// 导出模型加载
 export { loadModels, preWarmModels, precompileShaders } from './modelLoader.js';
+
+// 导出活体检测
 export { 
     detectMouthOpen, 
     detectHeadShake, 
@@ -22,20 +29,21 @@ export {
     resetLivenessDetection,
     processLivenessDetection 
 } from './livenessDetection.js';
-export { detectFaces } from './faceDetection.js';
-export { initializeCamera } from './camera.js';
-export { registerFace } from './registration.js';
 
-// 默认导出完整的 FaceVerify 对象
-// 注意：ES Module 版本需要在支持模块的环境中使用
-// 如果需要在浏览器中直接使用，请引入 js/app.js
-export default {
-    version: '1.0.0',
-    
-    // 这里只是类型定义，实际实现在 app.js 中
-    // ES Module 版本主要用于类型提示和按需导入
-    init: (options) => {
-        console.warn('ES Module 版本暂不支持完整功能，请使用 js/app.js');
-        return window.FaceVerify?.init(options);
-    }
-};
+// 导出人脸检测
+export { detectFaces } from './faceDetection.js';
+
+// 导出摄像头
+export { initializeCamera } from './camera.js';
+
+// 导出注册
+export { registerFace, registerFaceFromFile } from './registration.js';
+
+// 导出回调管理
+export { setCallbacks, triggerSuccess, triggerFail, triggerProgress, parseUrlParams } from './callbacks.js';
+
+// 导出主模块
+export { FaceVerify } from './main.js';
+
+// 默认导出 FaceVerify
+export { default } from './main.js';

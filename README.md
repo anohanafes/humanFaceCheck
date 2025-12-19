@@ -24,7 +24,7 @@ npm install humanfacecheck
 ```html
 <script src="./faceTools/tf.min.js"></script>
 <script src="./faceTools/face-api.js"></script>
-<script src="./js/app.js"></script>
+<script type="module" src="./js/modules/main.js"></script>
 ```
 
 ## 使用方式
@@ -86,6 +86,19 @@ window.addEventListener('message', (e) => {
   timestamp: 1702123456789 // 时间戳
 }
 ```
+
+## 配置参数
+
+可在 `js/modules/config.js` 中调整以下参数：
+
+| 参数 | 默认值 | 说明 |
+|-----|-------|------|
+| mouthOpenThreshold | 0.7 | 张嘴阈值，越大要求张嘴幅度越大 |
+| mouthOpenDuration | 800 | 张嘴持续时间(ms) |
+| headShakeThreshold.right | 1.5 | 向右转头阈值，越大要求幅度越大 |
+| headShakeThreshold.left | 0.67 | 向左转头阈值，越小要求幅度越大 |
+| maxFailCount | 4 | 最大连续失败次数 |
+| requiredMatchFrames | 3 | 需要连续匹配成功的帧数 |
 
 ## 技术栈
 

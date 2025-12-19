@@ -306,6 +306,8 @@ if (similarity > 90 && State.registeredDescriptors.length < Config.maxDescriptor
 
 ### 张嘴检测
 
+使用固定阈值 + 持续时间的方式检测张嘴动作，要求用户张嘴幅度足够大且保持一定时间。
+
 ```javascript
 detectMouthOpen(landmarks) {
     // 获取嘴部关键点
@@ -319,21 +321,38 @@ detectMouthOpen(landmarks) {
     const mouthWidth = Math.abs(rightCorner.x - leftCorner.x);
     const mouthRatio = mouthHeight / mouthWidth;
 
-    // 建立基线（闭嘴状态）
-    if (State.mouthBaseline === null || mouthRatio < State.mouthBaseline) {
-        State.mouthBaseline = mouthRatio;
-    }
+    // 使用配置的固定阈值判定张嘴
+    const isOpen = mouthRatio > config.mouthOpenThreshold; // 默认 0.7
 
-    // 判定张嘴：比例 > 0.4 或相对基线增大 2.5 倍
-    const OPEN_THRESHOLD = 0.4;
-    const isOpen = mouthRatio > OPEN_THRESHOLD || 
-                   (State.mouthBaseline && mouthRatio > State.mouthBaseline * 2.5);
+    if (isOpen) {
+        if (!state.mouthWasOpen) {
+            // 刚检测到张嘴，记录开始时间
+            state.mouthWasOpen = true;
+            state.mouthOpenStartTime = now;
+        } else {
+            // 持续张嘴超过配置时间算成功
+            if (now - state.mouthOpenStartTime > config.mouthOpenDuration) {
+                state.mouthWasOpen = false;
+                return true; // 张嘴检测成功
+            }
+        }
+    } else {
+        // 闭嘴了，重置状态
+        state.mouthWasOpen = false;
+    }
     
-    return isOpen;
+    return false;
 }
 ```
 
+**检测逻辑**：
+- 嘴高/嘴宽比例超过阈值（默认 0.7）视为张嘴
+- 需要持续保持张嘴状态一定时间（默认 800ms）
+- 中途闭嘴会重置计时
+
 ### 转头检测
+
+通过计算鼻子到两眼的距离比例判断头部转动方向。
 
 ```javascript
 detectHeadShake(landmarks, faceBox) {
@@ -347,14 +366,11 @@ detectHeadShake(landmarks, faceBox) {
     const rightDist = rightEyeX - noseX;
     const ratio = leftDist / rightDist;
 
-    // 判定转头方向
-    const RIGHT_TURN_THRESHOLD = 1.5;  // 向右转
-    const LEFT_TURN_THRESHOLD = 0.67;  // 向左转
-
+    // 使用配置的阈值判定转头方向
     let currentDirection = 0;
-    if (ratio > RIGHT_TURN_THRESHOLD) {
+    if (ratio > config.headShakeThreshold.right) {  // 默认 1.5
         currentDirection = 1;   // 向右
-    } else if (ratio < LEFT_TURN_THRESHOLD) {
+    } else if (ratio < config.headShakeThreshold.left) {  // 默认 0.67
         currentDirection = -1;  // 向左
     }
 
@@ -365,9 +381,8 @@ detectHeadShake(landmarks, faceBox) {
 
 **活体检测流程**：
 
-1. 张嘴检测：要求完成 1 次张嘴动作
+1. 张嘴检测：要求张嘴并保持一定时间
 2. 转头检测：要求完成 1 次左右转头
-3. 超时处理：单步骤超过 6 秒自动重新开始
 
 ---
 
@@ -388,7 +403,7 @@ detectHeadShake(landmarks, faceBox) {
 ## 配置参数说明
 
 ```javascript
-const Config = {
+const config = {
     // 验证配置
     maxFailCount: 4,           // 最大连续失败次数
     requiredMatchFrames: 3,    // 需要连续匹配成功的帧数
@@ -396,10 +411,14 @@ const Config = {
     maxSimilarityFrames: 12,   // 相似度平滑窗口大小
     
     // 活体检测配置
-    enableLiveness: true,      // 是否启用活体检测
     requiredMouthOpens: 1,     // 需要张嘴次数
     requiredShakes: 1,         // 需要转头次数
-    livenessTimeout: 6000,     // 单步骤超时时间(ms)
+    mouthOpenThreshold: 0.7,   // 张嘴阈值（嘴高/嘴宽比例，越大要求张嘴幅度越大）
+    mouthOpenDuration: 800,    // 张嘴持续时间(ms)
+    headShakeThreshold: {
+        right: 1.5,            // 向右转头阈值（越大要求转头幅度越大）
+        left: 0.67             // 向左转头阈值（越小要求转头幅度越大）
+    },
     
     // 检测配置
     detectionThrottle: {

@@ -5,12 +5,14 @@
 import { state, config } from './config.js';
 import { normalizeDescriptor, calculateSimilarity, getSmoothSimilarity, isMobileDevice } from './utils.js';
 import { startLivenessDetection, processLivenessDetection } from './livenessDetection.js';
+import { triggerSuccess, triggerFail } from './callbacks.js';
 
 /**
  * 人脸检测函数
  */
 export async function detectFaces(video) {
-    if (!state.registeredDescriptor || state.isDetecting || state.verificationFailed) {
+    // 如果已发送报告（验证成功或失败），不再检测
+    if (!state.registeredDescriptor || state.isDetecting || state.verificationFailed || state.reportSent) {
         return state.detections;
     }
 
@@ -71,24 +73,29 @@ export async function detectFaces(video) {
         let results = [];
 
         if (newDetections.length === 0) {
-            state.failCount++;
-            if (state.failCount >= 5) {
-                state.failCount = Math.max(0, state.failCount - 1);
+            // 只有在身份验证阶段才计算失败次数
+            if (state.livenessStep >= 2 && !state.isLivenessActive) {
+                state.failCount++;
             }
         } else {
             let hasMatch = false;
 
             newDetections.forEach(detection => {
-                // 处理活体检测
-                if (state.isLivenessActive) {
-                    const landmarks = detection.landmarks.positions;
-                    const faceBox = detection.detection.box;
-                    const canProceed = processLivenessDetection(landmarks, faceBox);
-                    if (!canProceed) {
-                        return;
-                    }
+                const landmarks = detection.landmarks.positions;
+                const faceBox = detection.detection.box;
+                
+                // 活体检测进行中（step < 2 表示还没完成）
+                if (state.isLivenessActive && state.livenessStep < 2) {
+                    processLivenessDetection(landmarks, faceBox);
+                    return;
                 }
-
+                
+                // 活体检测未完成，跳过身份验证
+                if (state.livenessStep < 2) {
+                    return;
+                }
+                
+                // 到这里说明活体检测已完成（livenessStep >= 2），开始身份验证
                 const normalizedDescriptor = normalizeDescriptor(detection.descriptor);
                 let bestDistance = 1.0;
 
@@ -182,7 +189,8 @@ export async function detectFaces(video) {
             statusDiv.textContent = "验证通过！";
             statusDiv.style.color = "#00ff99";
             retryBtn.style.display = 'none';
-            state.isDetecting = true;
+            // 触发成功回调
+            triggerSuccess({ similarity: smoothedSimilarity });
         } else if (state.failCount >= config.maxFailCount && !state.verificationFailed) {
             state.verificationFailed = true;
             state.reportSent = true;
@@ -190,6 +198,8 @@ export async function detectFaces(video) {
             statusDiv.style.color = "#ff4c4c";
             statusDiv.classList.add('verification-failed');
             retryBtn.style.display = 'block';
+            // 触发失败回调
+            triggerFail({ reason: '人脸匹配失败', similarity: smoothedSimilarity });
         } else if (!state.verificationFailed) {
             statusDiv.textContent = "请保持面部在框内，系统正在验证...";
             statusDiv.style.color = "#5c9ce6";

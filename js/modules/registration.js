@@ -8,17 +8,28 @@ import { loadModels, precompileShaders } from './modelLoader.js';
 import { initializeCamera } from './camera.js';
 
 /**
- * 注册照片处理
+ * 注册照片处理 - 从事件获取文件
  */
 export async function registerFace(e) {
     e.preventDefault();
 
-    try {
-        const startTime = performance.now();
+    if (!e.target.files || e.target.files.length === 0) {
+        return;
+    }
 
-        if (!e.target.files || e.target.files.length === 0) {
-            return;
-        }
+    const file = e.target.files[0];
+    return registerFaceFromFile(file);
+}
+
+/**
+ * 注册照片处理 - 从 File 对象
+ */
+export async function registerFaceFromFile(file) {
+    if (!file) {
+        return;
+    }
+
+    try {
 
         document.getElementById('status').textContent = "正在处理照片，请稍候...";
 
@@ -35,7 +46,6 @@ export async function registerFace(e) {
 
         document.getElementById('status').textContent = "处理照片 (20%)...";
 
-        const file = e.target.files[0];
         let img;
         const mobile = isMobileDevice();
 

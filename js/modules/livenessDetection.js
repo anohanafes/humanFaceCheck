@@ -6,15 +6,18 @@ import { state, config, resetLivenessState } from './config.js';
 
 /**
  * 张嘴检测 - 基于嘴部关键点
+ * 简化逻辑：检测到张嘴状态持续一段时间即可
  */
 export function detectMouthOpen(landmarks) {
     if (!landmarks || landmarks.length < 68) return false;
 
-    const upperLip = landmarks[51];
-    const lowerLip = landmarks[57];
+    // 使用嘴巴外轮廓计算张嘴程度
+    const upperLip = landmarks[51];         // 上唇中点
+    const lowerLip = landmarks[57];         // 下唇中点
     const leftCorner = landmarks[48];
     const rightCorner = landmarks[54];
 
+    // 计算嘴巴整体高度（上唇到下唇）
     const mouthHeight = Math.abs(lowerLip.y - upperLip.y);
     const mouthWidth = Math.abs(rightCorner.x - leftCorner.x);
 
@@ -22,41 +25,42 @@ export function detectMouthOpen(landmarks) {
 
     const mouthRatio = mouthHeight / mouthWidth;
 
-    if (state.mouthBaseline === null || mouthRatio < state.mouthBaseline) {
-        state.mouthBaseline = mouthRatio;
-    }
-
-    const OPEN_THRESHOLD = 0.4;
-    const isOpen = mouthRatio > OPEN_THRESHOLD || 
-                   (state.mouthBaseline && mouthRatio > state.mouthBaseline * 2.5);
-
-    if (state.isLivenessActive && state.livenessStep === 0 && Math.random() < 0.1) {
-        console.log(`张嘴检测: ratio=${mouthRatio.toFixed(3)}, 基线=${state.mouthBaseline?.toFixed(3) || 'N/A'}, 状态=${isOpen ? '张嘴' : '闭嘴'}`);
-    }
-
     const now = Date.now();
 
-    if (isOpen && !state.mouthWasOpen) {
-        state.mouthWasOpen = true;
-        if (state.isLivenessActive && state.livenessStep === 0) {
-            const instruction = document.getElementById('liveness-instruction');
+    // 如果正在切换步骤，不处理
+    if (state.livenessTransitioning) {
+        return false;
+    }
+
+    if (!state.isLivenessActive || state.livenessStep !== 0) {
+        return false;
+    }
+
+    const instruction = document.getElementById('liveness-instruction');
+    
+    // 使用配置的阈值
+    const isOpen = mouthRatio > config.mouthOpenThreshold;
+    
+    if (isOpen) {
+        if (!state.mouthWasOpen) {
+            // 刚检测到张嘴
+            state.mouthWasOpen = true;
+            state.mouthOpenStartTime = now;
             if (instruction) {
-                instruction.textContent = `检测到张嘴... (${state.mouthOpenCount}/${config.requiredMouthOpens})`;
+                instruction.textContent = '检测到张嘴，请保持...';
+            }
+        } else {
+            // 持续张嘴超过配置的时间算成功
+            const elapsed = now - state.mouthOpenStartTime;
+            if (elapsed > config.mouthOpenDuration) {
+                state.mouthWasOpen = false;
+                state.lastMouthOpenTime = now;
+                return true;
             }
         }
-    } else if (!isOpen && state.mouthWasOpen) {
+    } else {
+        // 闭嘴了，重置状态
         state.mouthWasOpen = false;
-        if (now - state.lastMouthOpenTime > 500) {
-            console.log(`✓ 张嘴确认: ratio=${mouthRatio.toFixed(3)}`);
-            state.lastMouthOpenTime = now;
-            if (state.isLivenessActive && state.livenessStep === 0) {
-                const instruction = document.getElementById('liveness-instruction');
-                if (instruction) {
-                    instruction.textContent = `张嘴成功! (${state.mouthOpenCount + 1}/${config.requiredMouthOpens})`;
-                }
-            }
-            return true;
-        }
     }
 
     return false;
@@ -83,18 +87,12 @@ export function detectHeadShake(landmarks, faceBox) {
         state.ratioBaseline = ratio;
     }
 
-    const RIGHT_TURN_THRESHOLD = 1.5;
-    const LEFT_TURN_THRESHOLD = 0.67;
-
-    if (state.isLivenessActive && state.livenessStep === 1 && Math.random() < 0.1) {
-        console.log(`摇头检测: Ratio=${ratio.toFixed(2)}, 基线=${state.ratioBaseline?.toFixed(2) || 'N/A'}`);
-    }
-
+    // 使用配置的阈值
     let currentDirection = 0;
 
-    if (ratio > RIGHT_TURN_THRESHOLD) {
+    if (ratio > config.headShakeThreshold.right) {
         currentDirection = 1;
-    } else if (ratio < LEFT_TURN_THRESHOLD) {
+    } else if (ratio < config.headShakeThreshold.left) {
         currentDirection = -1;
     }
 
@@ -183,7 +181,10 @@ export function updateLivenessUI() {
 
     switch (state.livenessStep) {
         case 0:
-            instruction.textContent = `请张嘴 (${state.mouthOpenCount}/${config.requiredMouthOpens})`;
+            // 设置初始提示，后续由 detectMouthOpen 动态更新
+            if (!state.mouthWasOpen) {
+                instruction.textContent = '请张嘴';
+            }
             instruction.classList.add('pulse');
             if (stepMouth) stepMouth.classList.add('active');
             progress = (state.mouthOpenCount / config.requiredMouthOpens) * 40;
@@ -223,27 +224,82 @@ export function processLivenessDetection(landmarks, faceBox) {
             if (detectMouthOpen(landmarks)) {
                 state.mouthOpenCount++;
                 console.log(`✓ 张嘴检测成功! 当前次数: ${state.mouthOpenCount}/${config.requiredMouthOpens}`);
+                
                 if (state.mouthOpenCount >= config.requiredMouthOpens) {
-                    state.livenessStep = 1;
-                    console.log('✓ 张嘴验证完成，进入摇头检测阶段');
-                    state.headShakeDirection = 0;
-                    state.shakeSequence = [];
-                    state.ratioBaseline = null;
+                    // 设置切换标志，防止提示被覆盖
+                    state.livenessTransitioning = true;
+                    
+                    // 显示张嘴成功提示
+                    const instruction = document.getElementById('liveness-instruction');
+                    const stepMouth = document.getElementById('step-mouth');
+                    const progressBar = document.getElementById('liveness-progress-bar');
+                    
+                    if (instruction) {
+                        instruction.textContent = '✓ 张嘴验证成功！';
+                        instruction.style.color = '#00ff99';
+                        instruction.classList.remove('pulse');
+                    }
+                    if (stepMouth) {
+                        stepMouth.classList.remove('active');
+                        stepMouth.classList.add('completed');
+                    }
+                    if (progressBar) {
+                        progressBar.style.width = '40%';
+                    }
+                    
+                    // 延迟 1 秒进入下一步
+                    setTimeout(() => {
+                        state.livenessTransitioning = false;
+                        if (instruction) {
+                            instruction.style.color = '';
+                        }
+                        state.livenessStep = 1;
+                        state.headShakeDirection = 0;
+                        state.shakeSequence = [];
+                        state.ratioBaseline = null;
+                        updateLivenessUI();
+                    }, 1000);
+                } else {
+                    updateLivenessUI();
                 }
-                updateLivenessUI();
             }
             break;
 
         case 1:
             if (detectHeadShake(landmarks, faceBox)) {
                 state.shakeCount++;
-                console.log(`✓ 摇头检测成功! 当前次数: ${state.shakeCount}/${config.requiredShakes}`);
                 if (state.shakeCount >= config.requiredShakes) {
+                    // 设置切换标志
+                    state.livenessTransitioning = true;
+                    
+                    // 显示摇头成功提示
+                    const instruction = document.getElementById('liveness-instruction');
+                    const stepShake = document.getElementById('step-shake');
+                    
+                    if (instruction) {
+                        instruction.textContent = '✓ 转头验证成功！';
+                        instruction.style.color = '#00ff99';
+                        instruction.classList.remove('pulse');
+                    }
+                    if (stepShake) {
+                        stepShake.classList.remove('active');
+                        stepShake.classList.add('completed');
+                    }
+                    
                     state.livenessStep = 2;
-                    console.log('✓ 摇头验证完成，活体检测即将完成');
+                    
+                    // 延迟 1 秒后完成活体检测
                     setTimeout(() => {
-                        completeLivenessDetection();
+                        state.livenessTransitioning = false;
+                        if (instruction) {
+                            instruction.style.color = '';
+                        }
+                        // 只有在未失败的情况下才完成活体检测
+                        if (!state.verificationFailed) {
+                            completeLivenessDetection();
+                        }
                     }, 1000);
+                    return false;
                 }
                 updateLivenessUI();
             }
