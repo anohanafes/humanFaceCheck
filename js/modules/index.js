@@ -39,6 +39,9 @@ export { initializeCamera } from './camera.js';
 // 导出注册
 export { registerFace, registerFaceFromFile } from './registration.js';
 
+// 导出图片模式
+export { registerPhotoMode, registerPhotoModeFromUrl, verifyPhoto, resetPhotoMode, fullResetPhotoMode, isPhotoMode } from './photoMode.js';
+
 // 导出回调管理
 export { setCallbacks, triggerSuccess, triggerFail, triggerProgress, parseUrlParams } from './callbacks.js';
 

@@ -103,7 +103,8 @@ export function parseUrlParams() {
     const params = new URLSearchParams(window.location.search);
     return {
         photoUrl: params.get('photo') || params.get('photoUrl'),
-        enableLiveness: params.get('liveness') !== 'false'
+        enableLiveness: params.get('liveness') !== 'false',
+        mode: params.get('mode') || 'camera'  // 'camera' 或 'photo'
     };
 }
 

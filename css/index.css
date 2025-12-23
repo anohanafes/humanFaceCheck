@@ -393,3 +393,19 @@ body {
         background: linear-gradient(135deg, #000a14 0%, #061a2e 50%, #000a14 100%);
     }
 }
+
+
+/* ==================== 图片模式验证上传 ==================== */
+#verify-upload-container {
+    text-align: center;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.verify-upload-btn {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+}
+
+.verify-upload-btn:hover {
+    background: linear-gradient(135deg, #0d7d71 0%, #2bc466 100%) !important;
+}
